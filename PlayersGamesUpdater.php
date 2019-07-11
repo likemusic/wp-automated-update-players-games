@@ -84,11 +84,26 @@ class PlayersGamesUpdater
         $awayPlayer = $game->getPlayerAway();
         $awayPlayerBaseInfo = $this->getPlayerBaseInfoBySourcePlayer($awayPlayer);
 
-        list($homePlayerTableData, $awayPlayerTableData) = $this->getPlayersTableData($dateTime, $game, $homePlayerBaseInfo, $awayPlayerBaseInfo);
+        list($homePlayerTableRowData, $awayPlayerTableRowData) = $this->getPlayersTableData($dateTime, $game, $homePlayerBaseInfo, $awayPlayerBaseInfo);
 
-        $this->updatePlayerTableIfNecessary($homePlayerBaseInfo, $homePlayerTableData);
-        $this->updatePlayerTableIfNecessary($awayPlayerBaseInfo, $awayPlayerTableData);
+        $homePlayerTableId = $this->getPlayerTableIdByShortCode($homePlayerBaseInfo->getTableShortCode());
+        $awayPlayerTableId = $this->getPlayerTableIdByShortCode($awayPlayerBaseInfo->getTableShortCode());
+
+        $this->updatePlayerTableIfNecessary($homePlayerTableId, $homePlayerTableRowData);
+        $this->updatePlayerTableIfNecessary($awayPlayerTableId, $awayPlayerTableRowData);
     }
+
+    private function getPlayerTableIdByShortCode($tableShortCode)
+    {
+        $pattern = '/\[table id=(?<tableId>[\w-]+)/';
+        $matches = [];
+        if (!preg_match($pattern, $tableShortCode, $matches)) {
+            throw new \Exception("Invalid table shortcut: " . $tableShortCode);
+        }
+
+        return $matches['tableId'];
+    }
+
 
     private function getPlayerBaseInfoBySourcePlayer($sourcePlayer)
     {
@@ -116,8 +131,8 @@ class PlayersGamesUpdater
         return $this->XScoreGameToTableRowConverter->convert($dateTime, $game, $homePlayerBaseInfo, $awayPlayerBaseInfo);
     }
 
-    private function updatePlayerTableIfNecessary(string $XScorePlayerName, array $tableData)
+    private function updatePlayerTableIfNecessary(string $homePlayerTableId, array $homePlayerTableRowData)
     {
-        $this->playerGamesUpdater->updateGamesIfNecessary($XScorePlayerName, $tableData);
+        $this->playerGamesUpdater->updateGamesIfNecessary($homePlayerTableId, $homePlayerTableRowData);
     }
 }

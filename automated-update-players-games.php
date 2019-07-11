@@ -29,6 +29,7 @@ use TennisScoresGrabber\XScores\UrlProvider;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\XScoreGameToTableRowConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerTableGamesUpdater;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerBaseInfoProvider;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\SourcePlayerSplitter;
 
 $simpleHttpClient = new SimpleHttpClient();
 $urlProvider = new UrlProvider();
@@ -45,12 +46,14 @@ $cronHelper = new CronHelper();
 $XScoreGameToTableRowConverter = new XScoreGameToTableRowConverter();
 $playerTableGamesUpdater = new PlayerTableGamesUpdater();
 $playerBaseInfoProvider = new PlayerBaseInfoProvider();
+$sourcePlayerSplitter = new SourcePlayerSplitter();
 
 $playersGamesUpdater = new PlayersGamesUpdater(
     $scoresProvider,
     $XScoreGameToTableRowConverter,
     $playerTableGamesUpdater,
-    $playerBaseInfoProvider
+    $playerBaseInfoProvider,
+    $sourcePlayerSplitter
 );
 
 $plugin = new Plugin($cronHelper, $playersGamesUpdater);
