@@ -5,9 +5,22 @@ namespace Likemusic\AutomatedUpdatePlayersGames\Helper;
 use DateTime;
 use Likemusic\AutomatedUpdatePlayersGames\Model\PlayerBaseInfo;
 use TennisScoresGrabber\XScores\Contracts\Entities\GameInterface;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeLatinToCyrillicConverter;
 
 class XScoreGameToTableRowConverter
 {
+    /** @var CountryCodeLatinToCyrillicConverter */
+    private $countryCodeLatintToCyrillicConverter;
+
+    /**
+     * XScoreGameToTableRowConverter constructor.
+     * @param CountryCodeLatinToCyrillicConverter $countryCodeLatintToCyrillicConverter
+     */
+    public function __construct(CountryCodeLatinToCyrillicConverter $countryCodeLatintToCyrillicConverter)
+    {
+        $this->countryCodeLatintToCyrillicConverter = $countryCodeLatintToCyrillicConverter;
+    }
+
     public function convert(
         DateTime $dateTime,
         GameInterface $game,
@@ -86,8 +99,7 @@ class XScoreGameToTableRowConverter
 
     private function getCyrillicCountryCode(string $latinCountryCode)
     {
-        return $latinCountryCode;
-        //TODO: implement
+        return $this->countryCodeLatintToCyrillicConverter->getCyrillicCountryCode($latinCountryCode);
     }
 
     private function getTableScore($score)
