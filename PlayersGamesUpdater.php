@@ -3,10 +3,13 @@
 namespace Likemusic\AutomatedUpdatePlayersGames;
 
 use DateTime;
+use Likemusic\AutomatedUpdatePlayersGames\Model\PlayerBaseInfo;
 use TennisScoresGrabber\XScores\Contracts\ScoresProviderInterface;
 use TennisScoresGrabber\XScores\Contracts\Entities\GameInterface;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\XScoreGameToTableRowConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerTableGamesUpdater;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerBaseInfoProvider;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\SourcePlayerSplitter;
 
 class PlayersGamesUpdater
 {
@@ -19,14 +22,24 @@ class PlayersGamesUpdater
     /** @var PlayerTableGamesUpdater */
     private $playerGamesUpdater;
 
+    /** @var PlayerBaseInfoProvider */
+    private $playerBaseInfoProvider;
+
+    /** @var SourcePlayerSplitter */
+    private $sourcePlayerSplitter;
+
     public function __construct(
         ScoresProviderInterface $scoresProvider,
         XScoreGameToTableRowConverter $XScoreGameToTableRowConverter,
-        PlayerTableGamesUpdater $playerGamesUpdater
+        PlayerTableGamesUpdater $playerGamesUpdater,
+        PlayerBaseInfoProvider $playerBaseInfoProvider,
+        SourcePlayerSplitter $sourcePlayerSplitter
     ) {
         $this->scoresProvider = $scoresProvider;
         $this->XScoreGameToTableRowConverter = $XScoreGameToTableRowConverter;
         $this->playerGamesUpdater = $playerGamesUpdater;
+        $this->playerBaseInfoProvider = $playerBaseInfoProvider;
+        $this->sourcePlayerSplitter = $sourcePlayerSplitter;
     }
 
     public function update()
@@ -65,15 +78,42 @@ class PlayersGamesUpdater
 
     private function updatePlayersGamesByGame(GameInterface $game, DateTime $dateTime)
     {
-        list($homePlayerTableData, $awayPlayerTableData) = $this->getPlayersTableData($game, $dateTime);
+        $homePlayer = $game->getPlayerHome();
+        $homePlayerBaseInfo = $this->getPlayerBaseInfoBySourcePlayer($homePlayer);
 
-        $this->updatePlayerTableIfNecessary($game->getPlayerHome(), $homePlayerTableData);
-        $this->updatePlayerTableIfNecessary($game->getPlayerAway(), $awayPlayerTableData);
+        $awayPlayer = $game->getPlayerAway();
+        $awayPlayerBaseInfo = $this->getPlayerBaseInfoBySourcePlayer($awayPlayer);
+
+        list($homePlayerTableData, $awayPlayerTableData) = $this->getPlayersTableData($dateTime, $game, $homePlayerBaseInfo, $awayPlayerBaseInfo);
+
+        $this->updatePlayerTableIfNecessary($homePlayerBaseInfo, $homePlayerTableData);
+        $this->updatePlayerTableIfNecessary($awayPlayerBaseInfo, $awayPlayerTableData);
     }
 
-    private function getPlayersTableData(GameInterface $game, DateTime $dateTime)
+    private function getPlayerBaseInfoBySourcePlayer($sourcePlayer)
     {
-        return $this->XScoreGameToTableRowConverter->convert($game, $dateTime);
+        list($homePlayerLatinLastName, $homePlayerLatinFirstNameFirstLetter, $homePlayerLatinCountryCode) = $this->getLatinPlayerNameParts($sourcePlayer);
+
+        return $this->getPlayerBaseInfo($homePlayerLatinLastName, $homePlayerLatinCountryCode);
+    }
+
+    private function getLatinPlayerNameParts($sourcePlayer)
+    {
+        return $this->sourcePlayerSplitter->getLatinPlayerNameParts($sourcePlayer);
+    }
+
+    private function getPlayerBaseInfo($latinPlayerName, $latinCountryCode): PlayerBaseInfo
+    {
+        return $this->playerBaseInfoProvider->getByLatinPlayerInfo($latinPlayerName, $latinCountryCode);
+    }
+
+    private function getPlayersTableData(
+        DateTime $dateTime,
+        GameInterface $game,
+        PlayerBaseInfo $homePlayerBaseInfo,
+        PlayerBaseInfo $awayPlayerBaseInfo
+    ) {
+        return $this->XScoreGameToTableRowConverter->convert($dateTime, $game, $homePlayerBaseInfo, $awayPlayerBaseInfo);
     }
 
     private function updatePlayerTableIfNecessary(string $XScorePlayerName, array $tableData)

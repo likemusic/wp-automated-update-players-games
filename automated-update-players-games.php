@@ -28,6 +28,7 @@ use Likemusic\SimpleHttpClient\FileGetContents\SimpleHttpClient;
 use TennisScoresGrabber\XScores\UrlProvider;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\XScoreGameToTableRowConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerTableGamesUpdater;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerBaseInfoProvider;
 
 $simpleHttpClient = new SimpleHttpClient();
 $urlProvider = new UrlProvider();
@@ -43,10 +44,13 @@ $cronHelper = new CronHelper();
 
 $XScoreGameToTableRowConverter = new XScoreGameToTableRowConverter();
 $playerTableGamesUpdater = new PlayerTableGamesUpdater();
+$playerBaseInfoProvider = new PlayerBaseInfoProvider();
+
 $playersGamesUpdater = new PlayersGamesUpdater(
     $scoresProvider,
     $XScoreGameToTableRowConverter,
-    $playerTableGamesUpdater
+    $playerTableGamesUpdater,
+    $playerBaseInfoProvider
 );
 
 $plugin = new Plugin($cronHelper, $playersGamesUpdater);
