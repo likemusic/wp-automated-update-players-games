@@ -30,6 +30,9 @@ use Likemusic\AutomatedUpdatePlayersGames\Helper\XScoreGameToTableRowConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerTableGamesUpdater;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerBaseInfoProvider;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\SourcePlayerSplitter;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeLatinToCyrillicConverter;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\TablePress as TablePressHelper;
+use TablePress_Table_Model;
 
 $simpleHttpClient = new SimpleHttpClient();
 $urlProvider = new UrlProvider();
@@ -43,8 +46,12 @@ $scoresHtmlParser = new HtmlParser($tableParser);
 $scoresProvider = new ScoresProvider($htmlProvider, $scoresHtmlParser);
 $cronHelper = new CronHelper();
 
-$XScoreGameToTableRowConverter = new XScoreGameToTableRowConverter();
-$playerTableGamesUpdater = new PlayerTableGamesUpdater();
+$countryCodeLatinToCyrillicConverter = new CountryCodeLatinToCyrillicConverter();
+$XScoreGameToTableRowConverter = new XScoreGameToTableRowConverter($countryCodeLatinToCyrillicConverter);
+
+$tablePressModel = new TablePress_Table_Model();
+$tablePressHelper = new TablePressHelper($tablePressModel);
+$playerTableGamesUpdater = new PlayerTableGamesUpdater($tablePressHelper);
 $playerBaseInfoProvider = new PlayerBaseInfoProvider();
 $sourcePlayerSplitter = new SourcePlayerSplitter();
 
