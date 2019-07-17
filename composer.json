@@ -24,9 +24,15 @@
   },
 
   "autoload": {
+    "files": [
+      "../tablepress/tablepress.php"
+    ],
     "psr-4": {
       "Likemusic\\AutomatedUpdatePlayersGames\\": "./"
-    }
+    },
+    "classmap": [
+      "../tablepress"
+    ]
   },
 
   "repositories":[

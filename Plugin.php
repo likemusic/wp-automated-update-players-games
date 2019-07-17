@@ -24,10 +24,10 @@ class Plugin
         register_activation_hook($pluginFile, [$this, 'activate']);
         register_deactivation_hook($pluginFile, [$this, 'deactivate']);
 
-        $this->addActionForHook();
+        $this->addActionForUpdatePlayersGamesHook();
     }
 
-    private function addActionForHook()
+    private function addActionForUpdatePlayersGamesHook()
     {
         add_action(HooksInterface::UPDATE_PLAYERS_GAMES, [$this->playersGamesUpdater, 'update']);
     }

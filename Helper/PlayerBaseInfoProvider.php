@@ -5,6 +5,7 @@ namespace Likemusic\AutomatedUpdatePlayersGames\Helper;
 use Exception;
 use Likemusic\AutomatedUpdatePlayersGames\Contracts\PostIdInterface;
 use Likemusic\AutomatedUpdatePlayersGames\Model\PlayerBaseInfo;
+use WP_Query;
 
 class PlayerBaseInfoProvider
 {
