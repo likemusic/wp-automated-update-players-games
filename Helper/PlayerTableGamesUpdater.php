@@ -50,15 +50,13 @@ class PlayerTableGamesUpdater
 
     private function getTableRow($tableData, $playerTableRowData)
     {
-        $filteredRows = array_filter(
-            $tableData,
-            function ($value) use ($playerTableRowData) {
-                return array_slice($playerTableRowData, 0, 3) == array_slice($value, 0, 3);
-            },
-        ARRAY_FILTER_USE_BOTH
-        );
+        foreach ($tableData as $tableRow) {
+            if (array_slice($playerTableRowData, 0, 3) == array_slice($tableRow, 0, 3)) {
+                return $tableRow;
+            }
+        }
 
-        return $filteredRows ? current($filteredRows) : null;
+        return null;
     }
 
     private function addTableRow($tableData, $playerTableRowData)
@@ -70,7 +68,7 @@ class PlayerTableGamesUpdater
 
     private function updateTableRow($tableData, $existsRow, $playerTableRowData)
     {
-        $arrayKeys = array_keys($tableData, $existsRow, $playerTableRowData);
+        $arrayKeys = array_keys($tableData, $existsRow);
         $arrayKey = current($arrayKeys);
         $tableData[$arrayKey] = $playerTableRowData;
 

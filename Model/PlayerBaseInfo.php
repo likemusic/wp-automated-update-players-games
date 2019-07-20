@@ -66,12 +66,12 @@ class PlayerBaseInfo
         return $this;
     }
 
-    public function getCountryCode(): string
+    public function getLatinCountryCode(): string
     {
         return $this->countryCode;
     }
 
-    public function setCountryCode(string $countryCode): self
+    public function setLatinCountryCode(string $countryCode): self
     {
         $this->countryCode = $countryCode;
 

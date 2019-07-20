@@ -5,20 +5,20 @@ namespace Likemusic\AutomatedUpdatePlayersGames\Helper;
 use DateTime;
 use Likemusic\AutomatedUpdatePlayersGames\Model\PlayerBaseInfo;
 use TennisScoresGrabber\XScores\Contracts\Entities\GameInterface;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeLatinToCyrillicConverter;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteCyrillic as DonorLatinToSiteCyrillicCountryCodeConverter;
 
 class XScoreGameToTableRowConverter
 {
-    /** @var CountryCodeLatinToCyrillicConverter */
-    private $countryCodeLatintToCyrillicConverter;
+    /** @var DonorLatinToSiteCyrillicCountryCodeConverter */
+    private $donorLatinToSiteCyrillicCountryCodeConverter;
 
     /**
      * XScoreGameToTableRowConverter constructor.
-     * @param CountryCodeLatinToCyrillicConverter $countryCodeLatintToCyrillicConverter
+     * @param DonorLatinToSiteCyrillicCountryCodeConverter $donorLatinToSiteCyrillicCountryCodeConverter
      */
-    public function __construct(CountryCodeLatinToCyrillicConverter $countryCodeLatintToCyrillicConverter)
+    public function __construct(DonorLatinToSiteCyrillicCountryCodeConverter $donorLatinToSiteCyrillicCountryCodeConverter)
     {
-        $this->countryCodeLatintToCyrillicConverter = $countryCodeLatintToCyrillicConverter;
+        $this->donorLatinToSiteCyrillicCountryCodeConverter = $donorLatinToSiteCyrillicCountryCodeConverter;
     }
 
     public function convert(
@@ -75,9 +75,9 @@ class XScoreGameToTableRowConverter
 
     private function getTablePlayer(PlayerBaseInfo $playerBaseInfo)
     {
-        list($cyrillicFirstName, $cyrillicLastNameFirstLetter, $cyrillicCountryCode) = $this->getCyrillicPlayerParts($playerBaseInfo);
+        list($cyrillicLastName, $cyrillicFirstNameFirstLetter, $cyrillicCountryCode) = $this->getCyrillicPlayerParts($playerBaseInfo);
 
-        return "{$cyrillicFirstName} {$cyrillicLastNameFirstLetter}. ({$cyrillicCountryCode})";
+        return "{$cyrillicLastName} {$cyrillicFirstNameFirstLetter}. ({$cyrillicCountryCode})";
     }
 
     private function getCyrillicPlayerParts(PlayerBaseInfo $playerBaseInfo)
@@ -85,21 +85,27 @@ class XScoreGameToTableRowConverter
         $playerFullName = $playerBaseInfo->getPostTitle();
         list($playerFirstName, $playerLastName) = explode(' ', $playerFullName);
 
-        $playerFirstNameFirstLetter = $playerFirstName[0];
+        $playerFirstNameFirstLetter = mb_substr($playerFirstName,0,1);
 
-        $latinCountryCode = $playerBaseInfo->getCountryCode();
-        $countryCode = $this->getCyrillicCountryCode($latinCountryCode);
+        $latinCountryCode = $playerBaseInfo->getLatinCountryCode();
+        $cyrillicCountryCode = $this->getCyrillicCountryCode($latinCountryCode);
+        $cyrillicCountryCodeWithUpperCaseFirst = $this->upperCaseFirst($cyrillicCountryCode);
 
         return [
             $playerLastName,
             $playerFirstNameFirstLetter,
-            $countryCode
+            $cyrillicCountryCodeWithUpperCaseFirst
         ];
+    }
+
+    private function upperCaseFirst($str)
+    {
+        return mb_convert_case($str, MB_CASE_TITLE);
     }
 
     private function getCyrillicCountryCode(string $latinCountryCode)
     {
-        return $this->countryCodeLatintToCyrillicConverter->getCyrillicCountryCode($latinCountryCode);
+        return $this->donorLatinToSiteCyrillicCountryCodeConverter->getSiteCyrillicByDonorLatin($latinCountryCode);
     }
 
     private function getTableScore($score)
@@ -117,6 +123,10 @@ class XScoreGameToTableRowConverter
 
     private function getTableHomeResult(array $score)
     {
+        if ($score[0] === '-'){
+            return '-';
+        }
+
         return ($score[0] > $score[1]) ? 'в' : 'п';
     }
 
@@ -130,6 +140,10 @@ class XScoreGameToTableRowConverter
 
     private function getTableAwayResult(array $score)
     {
+        if ($score[0] === '-'){//todo: to func
+            return '-';
+        }
+
         return ($score[0] < $score[1]) ? 'в' : 'п';
     }
 }

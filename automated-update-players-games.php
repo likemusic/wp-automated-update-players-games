@@ -30,9 +30,10 @@ use Likemusic\AutomatedUpdatePlayersGames\Helper\XScoreGameToTableRowConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerTableGamesUpdater;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerBaseInfoProvider;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\SourcePlayerSplitter;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeLatinToCyrillicConverter;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteCyrillic as DonorLatinToSiteCyrillicCountryCodeConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\TablePress as TablePressHelper;
 use TablePress_Table_Model;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteLatin as DonorLatinToSiteLatinCountryCodeConverter;
 
 $simpleHttpClient = new SimpleHttpClient();
 $urlProvider = new UrlProvider();
@@ -46,21 +47,23 @@ $scoresHtmlParser = new HtmlParser($tableParser);
 $scoresProvider = new ScoresProvider($htmlProvider, $scoresHtmlParser);
 $cronHelper = new CronHelper();
 
-$countryCodeLatinToCyrillicConverter = new CountryCodeLatinToCyrillicConverter();
-$XScoreGameToTableRowConverter = new XScoreGameToTableRowConverter($countryCodeLatinToCyrillicConverter);
+$donorLatinToSiteCyrillicCountryCodeConverter = new DonorLatinToSiteCyrillicCountryCodeConverter();
+$XScoreGameToTableRowConverter = new XScoreGameToTableRowConverter($donorLatinToSiteCyrillicCountryCodeConverter);
 
 $tablePressModel = new TablePress_Table_Model();
 $tablePressHelper = new TablePressHelper($tablePressModel);
 $playerTableGamesUpdater = new PlayerTableGamesUpdater($tablePressHelper);
 $playerBaseInfoProvider = new PlayerBaseInfoProvider();
 $sourcePlayerSplitter = new SourcePlayerSplitter();
+$donorLatinToSiteLatinCountryCodeConverter = new DonorLatinToSiteLatinCountryCodeConverter();
 
 $playersGamesUpdater = new PlayersGamesUpdater(
     $scoresProvider,
     $XScoreGameToTableRowConverter,
     $playerTableGamesUpdater,
     $playerBaseInfoProvider,
-    $sourcePlayerSplitter
+    $sourcePlayerSplitter,
+    $donorLatinToSiteLatinCountryCodeConverter
 );
 
 $plugin = new Plugin($cronHelper, $playersGamesUpdater);

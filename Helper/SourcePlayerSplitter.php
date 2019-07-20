@@ -2,20 +2,22 @@
 
 namespace Likemusic\AutomatedUpdatePlayersGames\Helper;
 
+use InvalidArgumentException;
+
 class SourcePlayerSplitter
 {
     public function getLatinPlayerNameParts($sourcePlayer)
     {
-        $pattern = '/(?<lastname>\w+) (?<fn>\w). \((?<country>\w+)\)/';
+        $pattern = '/(?<lastName>[\w-]+) (?<firstNameFirstLetters>\w.+) \((?<country>\w+)\)/';
         $matches = [];
 
         if (!preg_match($pattern, $sourcePlayer, $matches)) {
-            throw new \InvalidArgumentException('Invalid source player name: '. $sourcePlayerName);
+            throw new InvalidArgumentException('Invalid source player name: '. $sourcePlayer);
         }
 
         return [
-            $matches['lastname'],
-            $matches['fn'],
+            $matches['lastName'],
+            $matches['firstNameFirstLetters'],
             $matches['country'],
         ];
     }

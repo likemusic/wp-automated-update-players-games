@@ -3,14 +3,17 @@
 namespace Likemusic\AutomatedUpdatePlayersGames\Helper;
 
 use Exception;
+use Likemusic\AutomatedUpdatePlayersGames\Contracts\MetaFieldKeyInterface;
 use Likemusic\AutomatedUpdatePlayersGames\Contracts\PostIdInterface;
 use Likemusic\AutomatedUpdatePlayersGames\Model\PlayerBaseInfo;
 use WP_Query;
 
 class PlayerBaseInfoProvider
 {
-    public function getByLatinPlayerInfo(string $latinLastName, string $latinCountryCode): PlayerBaseInfo
+    public function getByLatinPlayerInfo(string $latinLastName, string $latinPlayerFirstNameFirstLetters, string $latinCountryCode): PlayerBaseInfo
     {
+        $firstNameLettersPattern = $this->getFirstNameLettersPattern($latinPlayerFirstNameFirstLetters);
+
         $wpQueryArgs = [
             'nopaging' => true,
             'post_type' => 'page',
@@ -22,8 +25,10 @@ class PlayerBaseInfoProvider
                 ],
                 [
                     'key' => 'name_lat',
-                    'value' => "{$latinLastName}",
-                    'compare'   => 'LIKE'
+//                    'value' => "{$latinPlayerFirstNameFirstLetter}\w+ {$latinLastName}",
+//                    'value' => "{$latinLastName}",
+                    'value' => "^{$firstNameLettersPattern} {$latinLastName}$",//todo: check for multiple firstLetters
+                    'compare'   => 'REGEXP'
                 ]
             ]
         ];
@@ -46,7 +51,7 @@ class PlayerBaseInfoProvider
         $postName = $post->post_name;
         $postTitle = $post->post_title;
 
-        $tableShortCode = get_post_meta($postId, 'n-matches-player', true);
+        $tableShortCode = get_post_meta($postId, MetaFieldKeyInterface::GAMES_TABLE_SHORT_CODE, true);
 
         $playerBaseInfo = new PlayerBaseInfo();
         $playerBaseInfo
@@ -54,8 +59,28 @@ class PlayerBaseInfoProvider
             ->setPostName($postName)
             ->setPostTitle($postTitle)
             ->setTableShortCode($tableShortCode)
+            ->setLatinCountryCode($latinCountryCode)
         ;
 
         return $playerBaseInfo;
+    }
+
+    /**
+     * @param string $firstNameFirstLetters
+     * @return string
+     */
+    private function getFirstNameLettersPattern(string $firstNameFirstLetters)
+    {
+        $letters = explode('.', $firstNameFirstLetters);
+        $lettersWithoutEmpty = array_filter($letters);
+
+        $patterns = [];
+
+        foreach ($lettersWithoutEmpty as $letter)
+        {
+            $patterns[] = "{$letter}[[:alpha:]]+";
+        }
+
+        return implode(' ', $patterns);
     }
 }
