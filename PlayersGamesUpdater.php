@@ -4,14 +4,16 @@ namespace Likemusic\AutomatedUpdatePlayersGames;
 
 use DateTime;
 use Exception;
-use Likemusic\AutomatedUpdatePlayersGames\Model\PlayerBaseInfo;
-use TennisScoresGrabber\XScores\Contracts\ScoresProviderInterface;
-use TennisScoresGrabber\XScores\Contracts\Entities\GameInterface;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\XScoreGameToTableRowConverter;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerTableGamesUpdater;
+use Likemusic\AutomatedUpdatePlayersGames\Contracts\MetaFieldKeyInterface;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteLatin as DonorLatinToSiteLatinCountryCodeConverter;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable\Creator as PlayerGamesTableCreator;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable\Updater as PlayerTableGamesUpdater;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerBaseInfoProvider;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\SourcePlayerSplitter;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteLatin as DonorLatinToSiteLatinCountryCodeConverter;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\XScoreGameToTableRowConverter;
+use Likemusic\AutomatedUpdatePlayersGames\Model\PlayerBaseInfo;
+use TennisScoresGrabber\XScores\Contracts\Entities\GameInterface;
+use TennisScoresGrabber\XScores\Contracts\ScoresProviderInterface;
 
 class PlayersGamesUpdater
 {
@@ -33,22 +35,41 @@ class PlayersGamesUpdater
     /** @var DonorLatinToSiteLatinCountryCodeConverter */
     private $donorLatinToSiteLatinCountryCodeConverter;
 
+    /** @var PlayerGamesTableCreator */
+    private $playerGamesTableCreator;
+
+    /**
+     * PlayersGamesUpdater constructor.
+     * @param ScoresProviderInterface $scoresProvider
+     * @param XScoreGameToTableRowConverter $XScoreGameToTableRowConverter
+     * @param PlayerTableGamesUpdater $playerGamesUpdater
+     * @param PlayerBaseInfoProvider $playerBaseInfoProvider
+     * @param SourcePlayerSplitter $sourcePlayerSplitter
+     * @param DonorLatinToSiteLatinCountryCodeConverter $donorLatinToSiteLatinCountryCodeConverter
+     * @param PlayerGamesTableCreator $playerGamesTableCreator
+     */
     public function __construct(
         ScoresProviderInterface $scoresProvider,
         XScoreGameToTableRowConverter $XScoreGameToTableRowConverter,
         PlayerTableGamesUpdater $playerGamesUpdater,
         PlayerBaseInfoProvider $playerBaseInfoProvider,
         SourcePlayerSplitter $sourcePlayerSplitter,
-        DonorLatinToSiteLatinCountryCodeConverter $donorLatinToSiteLatinCountryCodeConverter
-    ) {
+        DonorLatinToSiteLatinCountryCodeConverter $donorLatinToSiteLatinCountryCodeConverter,
+        PlayerGamesTableCreator $playerGamesTableCreator
+    )
+    {
         $this->scoresProvider = $scoresProvider;
         $this->XScoreGameToTableRowConverter = $XScoreGameToTableRowConverter;
         $this->playerGamesUpdater = $playerGamesUpdater;
         $this->playerBaseInfoProvider = $playerBaseInfoProvider;
         $this->sourcePlayerSplitter = $sourcePlayerSplitter;
         $this->donorLatinToSiteLatinCountryCodeConverter = $donorLatinToSiteLatinCountryCodeConverter;
+        $this->playerGamesTableCreator = $playerGamesTableCreator;
     }
 
+    /**
+     * @throws Exception
+     */
     public function update()
     {
         $dateTime = new DateTime();
@@ -100,41 +121,16 @@ class PlayersGamesUpdater
         $awayPlayer = $game->getPlayerAway();
         $awayPlayerBaseInfo = $this->getPlayerBaseInfoBySourcePlayer($awayPlayer);
 
-        list($homePlayerTableRowData, $awayPlayerTableRowData) = $this->getPlayersTableData($dateTime, $game, $homePlayerBaseInfo, $awayPlayerBaseInfo);
+        list($homePlayerTableRowData, $awayPlayerTableRowData) = $this->getPlayersTableData(
+            $dateTime,
+            $game,
+            $homePlayerBaseInfo,
+            $awayPlayerBaseInfo
+        );
 
-        if(!$homePlayerTableShortCode = $homePlayerBaseInfo->getTableShortCode()) {
-            throw new Exception("No table shortcode for home player: " . $homePlayer);
-        }
-
-        $homePlayerTableId = $this->getPlayerTableIdByShortCode($homePlayerTableShortCode);
-
-        if(!$awayPlayerTableShortCode = $homePlayerBaseInfo->getTableShortCode()) {
-            throw new Exception("No table shortcode for away player: " . $awayPlayer);
-        }
-
-        $awayPlayerTableId = $this->getPlayerTableIdByShortCode($awayPlayerTableShortCode);
-
-        $this->updatePlayerTableIfNecessary($homePlayerTableId, $homePlayerTableRowData);
-        $this->updatePlayerTableIfNecessary($awayPlayerTableId, $awayPlayerTableRowData);
+        $this->updateOrCreatePlayerGamesTable($homePlayerBaseInfo, $homePlayerTableRowData);
+        $this->updateOrCreatePlayerGamesTable($awayPlayerBaseInfo, $awayPlayerTableRowData);
     }
-
-    /**
-     * @param $tableShortCode
-     * @return string
-     * @throws Exception
-     */
-    private function getPlayerTableIdByShortCode($tableShortCode)
-    {
-        $pattern = '/\[table id=(?<tableId>[\w-]+)/';
-        $matches = [];
-
-        if (!preg_match($pattern, $tableShortCode, $matches)) {
-            throw new Exception("Invalid table shortcut: " . $tableShortCode);
-        }
-
-        return $matches['tableId'];
-    }
-
 
     /**
      * @param $sourcePlayer
@@ -151,6 +147,11 @@ class PlayersGamesUpdater
         return $this->getPlayerBaseInfo($homePlayerLatinLastName, $homePlayerLatinFirstNameFirstLetters, $homePlayerSiteLatinCountryCode);
     }
 
+    private function getLatinPlayerNameParts($sourcePlayer)
+    {
+        return $this->sourcePlayerSplitter->getLatinPlayerNameParts($sourcePlayer);
+    }
+
     /**
      * @param string $donorCountryCode
      * @return string
@@ -158,11 +159,6 @@ class PlayersGamesUpdater
     private function getSiteCountryCodeByDonorCountryCode($donorCountryCode)
     {
         return $this->donorLatinToSiteLatinCountryCodeConverter->getSiteLatinByDonorLatin($donorCountryCode);
-    }
-
-    private function getLatinPlayerNameParts($sourcePlayer)
-    {
-        return $this->sourcePlayerSplitter->getLatinPlayerNameParts($sourcePlayer);
     }
 
     /**
@@ -182,10 +178,104 @@ class PlayersGamesUpdater
         GameInterface $game,
         PlayerBaseInfo $homePlayerBaseInfo,
         PlayerBaseInfo $awayPlayerBaseInfo
-    ) {
+    )
+    {
         return $this->XScoreGameToTableRowConverter->convert($dateTime, $game, $homePlayerBaseInfo, $awayPlayerBaseInfo);
     }
 
+    /**
+     * @param PlayerBaseInfo $playerBaseInfo
+     * @param $playerTableRowData
+     * @throws Exception
+     */
+    private function updateOrCreatePlayerGamesTable(PlayerBaseInfo $playerBaseInfo, array $playerTableRowData): void
+    {
+        if (!$homePlayerTableShortCode = $playerBaseInfo->getTableShortCode()) {
+            $this->createAndLinkGamesTableWithDataRow($playerBaseInfo, $playerTableRowData);
+        } else {
+            $homePlayerTableId = $this->getPlayerTableIdByShortCode($homePlayerTableShortCode);
+            $this->updatePlayerTableIfNecessary($homePlayerTableId, $playerTableRowData);
+        }
+    }
+
+    /**
+     * @param PlayerBaseInfo $playerBaseInfo
+     * @param array $playerTableRowData
+     * @throws Exception
+     */
+    private function createAndLinkGamesTableWithDataRow(PlayerBaseInfo $playerBaseInfo, array $playerTableRowData)
+    {
+        $tableId = $this->createGamesTable($playerBaseInfo, $playerTableRowData);
+        $this->linkGamesTable($tableId, $playerBaseInfo);
+    }
+
+    /**
+     * @param PlayerBaseInfo $playerBaseInfo
+     * @param array $playerTableRowData
+     * @return string
+     * @throws Exception
+     */
+    private function createGamesTable(PlayerBaseInfo $playerBaseInfo, array $playerTableRowData)
+    {
+        return $this->playerGamesTableCreator->createTableByBaseInfo($playerBaseInfo, $playerTableRowData);
+    }
+
+    /**
+     * @param string $tableId
+     * @param PlayerBaseInfo $playerBaseInfo
+     * @throws Exception
+     */
+    private function linkGamesTable($tableId, PlayerBaseInfo $playerBaseInfo)
+    {
+        $pageId = $playerBaseInfo->getPostId();
+        $shortCode = $this->getShortCodeByTableId($tableId);
+        $this->updatePostMeta($pageId, MetaFieldKeyInterface::GAMES_TABLE_SHORT_CODE, $shortCode);
+    }
+
+    /**
+     * @param string $tableId
+     * @return string
+     */
+    private function getShortCodeByTableId($tableId)
+    {
+        return "[table id={$tableId} /]";
+    }
+
+    /**
+     * @param int $postId
+     * @param string $metaKey
+     * @param string $metaValue
+     * @throws Exception
+     */
+    private function updatePostMeta($postId, $metaKey, $metaValue)
+    {
+        if (!update_post_meta($postId, $metaKey, $metaValue)) {
+            throw new Exception("Can\'t update post meta: postId={$postId}, metaKey={$metaKey}, metaValue={$metaValue}");
+        };
+    }
+
+    /**
+     * @param $tableShortCode
+     * @return string
+     * @throws Exception
+     */
+    private function getPlayerTableIdByShortCode($tableShortCode)
+    {
+        $pattern = '/\[table id=(?<tableId>[\w-]+)/';
+        $matches = [];
+
+        if (!preg_match($pattern, $tableShortCode, $matches)) {
+            throw new Exception("Invalid table shortcut: " . $tableShortCode);
+        }
+
+        return $matches['tableId'];
+    }
+
+    /**
+     * @param string $homePlayerTableId
+     * @param array $homePlayerTableRowData
+     * @throws Exception
+     */
     private function updatePlayerTableIfNecessary(string $homePlayerTableId, array $homePlayerTableRowData)
     {
         $this->playerGamesUpdater->updateGamesIfNecessary($homePlayerTableId, $homePlayerTableRowData);

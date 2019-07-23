@@ -18,22 +18,23 @@ namespace Likemusic\AutomatedUpdatePlayersGames;
 
 require __DIR__ . '/vendor/autoload.php';
 
-use TennisScoresGrabber\XScores\ScoresProvider;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteCyrillic as DonorLatinToSiteCyrillicCountryCodeConverter;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteLatin as DonorLatinToSiteLatinCountryCodeConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\Cron as CronHelper;
-use TennisScoresGrabber\XScores\HtmlProvider;
-use TennisScoresGrabber\XScores\HtmlParser;
-use TennisScoresGrabber\XScores\TableParser;
-use TennisScoresGrabber\XScores\Helper\GameRowToGameConverter;
-use Likemusic\SimpleHttpClient\FileGetContents\SimpleHttpClient;
-use TennisScoresGrabber\XScores\UrlProvider;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\XScoreGameToTableRowConverter;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerTableGamesUpdater;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable\Creator as PlayerGameTableCreator;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable\Updater as PlayerTableGamesUpdater;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerBaseInfoProvider;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\SourcePlayerSplitter;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteCyrillic as DonorLatinToSiteCyrillicCountryCodeConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\TablePress as TablePressHelper;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\XScoreGameToTableRowConverter;
+use Likemusic\SimpleHttpClient\FileGetContents\SimpleHttpClient;
 use TablePress_Table_Model;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteLatin as DonorLatinToSiteLatinCountryCodeConverter;
+use TennisScoresGrabber\XScores\Helper\GameRowToGameConverter;
+use TennisScoresGrabber\XScores\HtmlParser;
+use TennisScoresGrabber\XScores\HtmlProvider;
+use TennisScoresGrabber\XScores\ScoresProvider;
+use TennisScoresGrabber\XScores\TableParser;
+use TennisScoresGrabber\XScores\UrlProvider;
 
 $simpleHttpClient = new SimpleHttpClient();
 $urlProvider = new UrlProvider();
@@ -56,6 +57,7 @@ $playerTableGamesUpdater = new PlayerTableGamesUpdater($tablePressHelper);
 $playerBaseInfoProvider = new PlayerBaseInfoProvider();
 $sourcePlayerSplitter = new SourcePlayerSplitter();
 $donorLatinToSiteLatinCountryCodeConverter = new DonorLatinToSiteLatinCountryCodeConverter();
+$playerTableGamesCreator = new PlayerGameTableCreator($tablePressHelper);
 
 $playersGamesUpdater = new PlayersGamesUpdater(
     $scoresProvider,
@@ -63,7 +65,8 @@ $playersGamesUpdater = new PlayersGamesUpdater(
     $playerTableGamesUpdater,
     $playerBaseInfoProvider,
     $sourcePlayerSplitter,
-    $donorLatinToSiteLatinCountryCodeConverter
+    $donorLatinToSiteLatinCountryCodeConverter,
+    $playerTableGamesCreator
 );
 
 $plugin = new Plugin($cronHelper, $playersGamesUpdater);

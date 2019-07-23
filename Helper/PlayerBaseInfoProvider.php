@@ -10,6 +10,13 @@ use WP_Query;
 
 class PlayerBaseInfoProvider
 {
+    /**
+     * @param string $latinLastName
+     * @param string $latinPlayerFirstNameFirstLetters
+     * @param string $latinCountryCode
+     * @return PlayerBaseInfo
+     * @throws Exception
+     */
     public function getByLatinPlayerInfo(string $latinLastName, string $latinPlayerFirstNameFirstLetters, string $latinCountryCode): PlayerBaseInfo
     {
         $firstNameLettersPattern = $this->getFirstNameLettersPattern($latinPlayerFirstNameFirstLetters);
@@ -20,15 +27,15 @@ class PlayerBaseInfoProvider
             'post_parent' => PostIdInterface::PLAYERS,
             'meta_query' => [
                 [
-                    'key'         => 'country',
-                    'value'       => $latinCountryCode,
+                    'key' => 'country',
+                    'value' => $latinCountryCode,
                 ],
                 [
                     'key' => 'name_lat',
 //                    'value' => "{$latinPlayerFirstNameFirstLetter}\w+ {$latinLastName}",
 //                    'value' => "{$latinLastName}",
                     'value' => "^{$firstNameLettersPattern} {$latinLastName}$",//todo: check for multiple firstLetters
-                    'compare'   => 'REGEXP'
+                    'compare' => 'REGEXP'
                 ]
             ]
         ];
@@ -52,6 +59,7 @@ class PlayerBaseInfoProvider
         $postTitle = $post->post_title;
 
         $tableShortCode = get_post_meta($postId, MetaFieldKeyInterface::GAMES_TABLE_SHORT_CODE, true);
+        $latinName = get_post_meta($postId, MetaFieldKeyInterface::LATIN_NAME, true);
 
         $playerBaseInfo = new PlayerBaseInfo();
         $playerBaseInfo
@@ -60,7 +68,7 @@ class PlayerBaseInfoProvider
             ->setPostTitle($postTitle)
             ->setTableShortCode($tableShortCode)
             ->setLatinCountryCode($latinCountryCode)
-        ;
+            ->setLatinName($latinName);
 
         return $playerBaseInfo;
     }
@@ -76,8 +84,7 @@ class PlayerBaseInfoProvider
 
         $patterns = [];
 
-        foreach ($lettersWithoutEmpty as $letter)
-        {
+        foreach ($lettersWithoutEmpty as $letter) {
             $patterns[] = "{$letter}[[:alpha:]]+";
         }
 

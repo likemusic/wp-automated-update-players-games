@@ -1,20 +1,26 @@
 <?php
 
-namespace Likemusic\AutomatedUpdatePlayersGames\Helper;
+namespace Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable;
 
+use Exception;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\TablePress as TablePressHelper;
 
-class PlayerTableGamesUpdater
+class Updater
 {
     /** @var TablePressHelper */
     private $tablePressHelper;
 
-    public function __construct(TablePress $tablePressHelper)
+    public function __construct(TablePressHelper $tablePressHelper)
     {
         $this->tablePressHelper = $tablePressHelper;
     }
 
-    public function updateGamesIfNecessary($playerTableId, $playerTableRowData)
+    /**
+     * @param string $playerTableId
+     * @param array $playerTableRowData
+     * @throws Exception
+     */
+    public function updateGamesIfNecessary(string $playerTableId, array $playerTableRowData)
     {
         $pressTable = $this->getPressTableById($playerTableId);
 
@@ -23,6 +29,11 @@ class PlayerTableGamesUpdater
         };
     }
 
+    /**
+     * @param string $pressTableId
+     * @return array
+     * @throws Exception
+     */
     private function getPressTableById(string $pressTableId): array
     {
         return $this->tablePressHelper->getTableById($pressTableId);
@@ -39,7 +50,7 @@ class PlayerTableGamesUpdater
 
         if (!$existsRow) {
             $tableData = $this->addTableRow($tableData, $playerTableRowData);
-        } else {//($existsRow != $playerTableRowData)
+        } else {
             $tableData = $this->updateTableRow($tableData, $existsRow, $playerTableRowData);
         }
 

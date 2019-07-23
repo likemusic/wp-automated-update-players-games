@@ -18,12 +18,14 @@ class PlayerBaseInfo
 
     private $countryCode;
 
+    private $latinName;
+
     public function getPostId()
     {
         return $this->postId;
     }
 
-    public function setPostId($postId):self
+    public function setPostId($postId): self
     {
         $this->postId = $postId;
 
@@ -47,7 +49,7 @@ class PlayerBaseInfo
         return $this->postTitle;
     }
 
-    public function setPostTitle(?string  $postTitle): self
+    public function setPostTitle(?string $postTitle): self
     {
         $this->postTitle = $postTitle;
 
@@ -76,5 +78,15 @@ class PlayerBaseInfo
         $this->countryCode = $countryCode;
 
         return $this;
+    }
+
+    public function getLatinName()
+    {
+        return $this->latinName;
+    }
+
+    public function setLatinName($latinName)
+    {
+        $this->latinName = $latinName;
     }
 }
