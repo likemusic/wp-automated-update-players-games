@@ -43,13 +43,13 @@ class PlayerBaseInfoProvider
         $wpQuery = new WP_Query($wpQueryArgs);
 
         if (!$wpQuery->have_posts()) {
-            throw new Exception("No page for {$latinLastName} ({$latinCountryCode})");
+            throw new Exception("No page for player: {$latinLastName} ({$latinCountryCode})");
         }
 
         $posts = $wpQuery->get_posts();
 
         if (($postsCount = count($posts)) > 1) {
-            throw new Exception("Too many posts ({$postsCount}) for {$latinLastName} ({$latinCountryCode}). Expected 1");
+            throw new Exception("Too many pages ({$postsCount}) for player: {$latinLastName} ({$latinCountryCode}). Expected 1");
         }
 
         $post = current($posts);

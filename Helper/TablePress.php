@@ -25,12 +25,23 @@ class TablePress
     {
         $table = $this->tablePressModel->load($tableId);
 
-        if (!is_array($table)) {
+        if ($table instanceof WP_Error) {
             /** @var WP_Error $table */
-            throw new Exception($table->get_error_message());
+            $wpErrorMessage = $this->getExceptionMessageByWpError($table);
+
+            throw new Exception("Error on load table with id \"{$tableId}\". WP Error: {$wpErrorMessage}");
         }
 
         return $table;
+    }
+
+    private function getExceptionMessageByWpError(WP_Error $error)
+    {
+        $errorCode = $error->get_error_code();
+        $errorMessage = $error->get_error_message();
+        $errorData = $error->get_error_data();
+
+        return "code={$errorCode}, message={$errorMessage}, data={$errorData}";
     }
 
     public function save(array $pressTable)
