@@ -63,8 +63,11 @@ class TablePress
     {
         $result = $this->tablePressModel->change_table_id($oldTableId, $newTableId);
 
-        if($result instanceof WP_Error) {
-            throw new Exception($result->get_error_message());
+        if ($result instanceof WP_Error) {
+            /** @var WP_Error $table */
+            $wpErrorMessage = $this->getExceptionMessageByWpError($result);
+
+            throw new Exception("Cant't change table id from \"{$oldTableId}\" to \"{$newTableId}\". WP Error: {$wpErrorMessage}");
         }
     }
 }
