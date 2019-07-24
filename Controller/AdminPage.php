@@ -74,7 +74,7 @@ class AdminPage
         $this->updateForDates($dates);
 
         $messages = [
-            'История игроков успешно обновлена'
+            'История игр игроков успешно обновлена'
         ];
 
         $dateStart = $this->getPostData('date-start');
