@@ -138,10 +138,13 @@ class AdminPage
         $requestedDateStartStr = $this->getPostData(FormFieldInterface::DATE_START);
         $requestedDateEndStr = $this->getPostData(FormFieldInterface::DATE_END);
 
+        $dateEnd = new DateTime($requestedDateEndStr);
+        $dateEnd->setTime(1,0, 0);
+
         $period = new DatePeriod(
             new DateTime($requestedDateStartStr),
             new DateInterval('P1D'),
-            new DateTime($requestedDateEndStr)
+            $dateEnd
         );
 
         $dates = [];

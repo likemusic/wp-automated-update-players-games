@@ -45,21 +45,25 @@ use Likemusic\AutomatedUpdatePlayersGames\Contracts\AdminPage\DateType;
     <h2><?= get_admin_page_title() ?></h2>
     <br/>
 
-    <div class="save-changes-success notice notice-success">
-        <?php
-            foreach ($messages as $message) {
-                echo "<p>{$message}</p>";
-            }
-        ?>
-    </div>
+    <?php if ($messages): ?>
+        <div class="save-changes-success notice notice-success">
+            <?php
+                foreach ($messages as $message) {
+                    echo "<p>{$message}</p>";
+                }
+            ?>
+        </div>
+    <?php endif; ?>
 
-    <div class="save-changes-success notice notice-error">
-        <?php
-        foreach ($errorMessages as $errorMessage) {
-            echo "<p>{$errorMessage}</p>";
-        }
-        ?>
-    </div>
+    <?php if ($errorMessages): ?>
+        <div class="save-changes-success notice notice-error">
+            <?php
+            foreach ($errorMessages as $errorMessage) {
+                echo "<p>{$errorMessage}</p>";
+            }
+            ?>
+        </div>
+    <?php endif; ?>
 
     <form action="" method="post">
 
