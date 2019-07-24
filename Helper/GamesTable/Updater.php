@@ -3,6 +3,7 @@
 namespace Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable;
 
 use Exception;
+use Likemusic\AutomatedUpdatePlayersGames\Contracts\GamesTableKeyInterface;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\TablePress as TablePressHelper;
 
 class Updater
@@ -54,7 +55,14 @@ class Updater
             $tableData = $this->updateTableRow($tableData, $existsRow, $playerTableRowData);
         }
 
+        return $this->setTableData($pressTable, $tableData);
+    }
+
+    private function setTableData($pressTable, $tableData)
+    {
         $pressTable['data'] = $tableData;
+        $rowsCount = count($tableData);
+        $pressTable['visibility']['rows'] = array_fill(0, $rowsCount, 1);
 
         return $pressTable;
     }
@@ -72,9 +80,29 @@ class Updater
 
     private function addTableRow($tableData, $playerTableRowData)
     {
-        array_unshift($tableData, $playerTableRowData);
+        $tableData[] = $playerTableRowData;
+        usort($tableData, [$this, 'compareTableRowsByDate']);
 
-        return $tableData;
+        return array_reverse($tableData);
+    }
+
+    private function compareTableRowsByDate($row1, $row2)
+    {
+        $dateStr1 = $row1[GamesTableKeyInterface::DATE];
+        $dateStr2 = $row2[GamesTableKeyInterface::DATE];
+
+        $comparableDateStr1 = $this->getComparableDateString($dateStr1);
+        $comparableDateStr2 = $this->getComparableDateString($dateStr2);
+
+        return strcmp($comparableDateStr1, $comparableDateStr2);
+    }
+
+    private function getComparableDateString($tableRowDateString)
+    {
+        $chunks = explode('.', $tableRowDateString);
+        $reversedChunks = array_reverse($chunks);
+
+        return implode('', $reversedChunks);
     }
 
     private function updateTableRow($tableData, $existsRow, $playerTableRowData)
