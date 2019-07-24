@@ -53,6 +53,14 @@ use Likemusic\AutomatedUpdatePlayersGames\Contracts\AdminPage\DateType;
         ?>
     </div>
 
+    <div class="save-changes-success notice notice-error">
+        <?php
+        foreach ($errorMessages as $errorMessage) {
+            echo "<p>{$errorMessage}</p>";
+        }
+        ?>
+    </div>
+
     <form action="" method="post">
 
         <div class="type-selector">

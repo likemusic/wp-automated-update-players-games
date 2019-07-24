@@ -51,31 +51,36 @@ class AdminPage
      * @throws Exception
      */
     private function onPost() {
-        $type = $this->getRequestedType();
+        $messages = [];
+        $errorMessages = [];
 
-        switch ($type) {
-            case DateType::CURRENT:
-                $dates = [new DateTime()];
-                break;
-            case DateType::YESTERDAY:
-                $dates = [new DateTime('-1 day')];
-                break;
-            case DateType::DAY:
-                $requestedDate = $this->getRequestedDate();
-                $dates = [$requestedDate];
-                break;
-            case DateType::PERIOD:
-                $dates = $this->getRequestedDates();
-                break;
-            default:
-                throw new InvalidArgumentException('Unknown type value:'. $type);
+        try {
+            $type = $this->getRequestedType();
+
+            switch ($type) {
+                case DateType::CURRENT:
+                    $dates = [new DateTime()];
+                    break;
+                case DateType::YESTERDAY:
+                    $dates = [new DateTime('-1 day')];
+                    break;
+                case DateType::DAY:
+                    $requestedDate = $this->getRequestedDate();
+                    $dates = [$requestedDate];
+                    break;
+                case DateType::PERIOD:
+                    $dates = $this->getRequestedDates();
+                    break;
+                default:
+                    throw new InvalidArgumentException('Unknown type value:'. $type);
+            }
+
+            $this->updateForDates($dates);
+
+            $messages[] = 'История игр игроков успешно обновлена';
+        } catch (Exception $exception) {
+            $errorMessages[] = $exception->getMessage();
         }
-
-        $this->updateForDates($dates);
-
-        $messages = [
-            'История игр игроков успешно обновлена'
-        ];
 
         $dateStart = $this->getPostData('date-start');
         $dateEnd = $this->getPostData('date-end');
@@ -179,6 +184,8 @@ class AdminPage
     private function onGet() {
         $type = self::DEFAULT_TYPE;
         $messages = [];
+        $errorMessages = [];
+
         $dateStart = $dateEnd = $this->getDateCurrent();
         $dateMin = $this->getDateMin();
         $dateMax = $this->getDateCurrent();
