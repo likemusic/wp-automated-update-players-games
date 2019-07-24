@@ -70,9 +70,25 @@ class PlayersGamesUpdater
     /**
      * @throws Exception
      */
-    public function update()
+    public function updateCurrent()
+    {
+        $dateTime = $this->getCurrentDateTime();
+        $this->updateForDate($dateTime);
+    }
+
+    /**
+     * @return DateTime
+     * @throws Exception
+     */
+    private function getCurrentDateTime()
     {
         $dateTime = new DateTime();
+
+        return $dateTime;
+    }
+
+    public function updateForDate(DateTime $dateTime)
+    {
         $games = $this->getScoresData($dateTime);
         $this->updatePlayersGames($games, $dateTime);
     }
@@ -142,7 +158,9 @@ class PlayersGamesUpdater
         list($homePlayerLatinLastName, $homePlayerLatinFirstNameFirstLetters, $homePlayerDonorLatinCountryCode)
             = $this->getLatinPlayerNameParts($sourcePlayer);
 
-        $homePlayerSiteLatinCountryCode = $this->getSiteCountryCodeByDonorCountryCode($homePlayerDonorLatinCountryCode);
+        $homePlayerSiteLatinCountryCode = $homePlayerDonorLatinCountryCode
+            ? $this->getSiteCountryCodeByDonorCountryCode($homePlayerDonorLatinCountryCode)
+            : null;
 
         return $this->getPlayerBaseInfo($homePlayerLatinLastName, $homePlayerLatinFirstNameFirstLetters, $homePlayerSiteLatinCountryCode);
     }
@@ -279,5 +297,25 @@ class PlayersGamesUpdater
     private function updatePlayerTableIfNecessary(string $homePlayerTableId, array $homePlayerTableRowData)
     {
         $this->playerGamesUpdater->updateGamesIfNecessary($homePlayerTableId, $homePlayerTableRowData);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function updateYesterday()
+    {
+        $dateTime = $this->getYesterdayDatetime();
+        $this->updateForDate($dateTime);
+    }
+
+    /**
+     * @return DateTime
+     * @throws Exception
+     */
+    private function getYesterdayDatetime()
+    {
+        $dateTime = new DateTime('yesterday');
+
+        return $dateTime;
     }
 }

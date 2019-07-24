@@ -2,21 +2,31 @@
 
 namespace Likemusic\AutomatedUpdatePlayersGames;
 
-use Likemusic\AutomatedUpdatePlayersGames\Helper\Cron as CronHelper;
-use Likemusic\AutomatedUpdatePlayersGames\Contracts\HooksInterface;
+use Exception;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\Cron as CronService;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\Hooks as HooksService;
 
 class Plugin
 {
-    /** @var CronHelper */
-    private $cronHelper;
+    /** @var CronService */
+    private $cronService;
 
-    /** @var PlayersGamesUpdater */
-    private $playersGamesUpdater;
+    /**
+     * @var HooksService
+     */
+    private $hooksService;
 
-    public function __construct(CronHelper $cronHelper, PlayersGamesUpdater $playersGamesUpdater)
-    {
-        $this->cronHelper = $cronHelper;
-        $this->playersGamesUpdater = $playersGamesUpdater;
+    /**
+     * Plugin constructor.
+     * @param CronService $cronService
+     * @param HooksService $hooksService
+     */
+    public function __construct(
+        CronService $cronService,
+        HooksService $hooksService
+    ) {
+        $this->cronService = $cronService;
+        $this->hooksService = $hooksService;
     }
 
     public function run($pluginFile)
@@ -24,31 +34,37 @@ class Plugin
         register_activation_hook($pluginFile, [$this, 'activate']);
         register_deactivation_hook($pluginFile, [$this, 'deactivate']);
 
-        $this->addActionForUpdatePlayersGamesHook();
+        $this->addActionsForUpdatePlayersGamesHooks();
     }
 
-    private function addActionForUpdatePlayersGamesHook()
+    private function addActionsForUpdatePlayersGamesHooks()
     {
-        add_action(HooksInterface::UPDATE_PLAYERS_GAMES, [$this->playersGamesUpdater, 'update']);
+        $this->hooksService->addActionsForUpdatePlayersGamesHooks();
     }
 
+    /**
+     * @throws Exception
+     */
     public function activate()
     {
-        $this->addCronTask();
+        $this->addCronTasks();
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function addCronTasks()
+    {
+        $this->cronService->addCronTasks();
     }
 
     public function deactivate()
     {
-        $this->deleteCronTask();
+        $this->deleteCronTasks();
     }
 
-    private function addCronTask()
+    private function deleteCronTasks()
     {
-        $this->cronHelper->addTask();
-    }
-
-    private function deleteCronTask()
-    {
-        $this->cronHelper->deleteTask();
+        $this->cronService->deleteCronTasks();
     }
 }

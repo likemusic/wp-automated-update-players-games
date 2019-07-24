@@ -1,24 +1,61 @@
 <?php
-
 namespace Likemusic\AutomatedUpdatePlayersGames\Helper;
 
+use Exception;
+use Likemusic\AutomatedUpdatePlayersGames\Contracts\WordpressPeriodInterface;
 use Likemusic\AutomatedUpdatePlayersGames\Contracts\HooksInterface;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\Cron\Manager as CronManager;
 
 class Cron
 {
-    const HOOK_NAME = HooksInterface::UPDATE_PLAYERS_GAMES;
+    // Hook Name, Period, Start Hours, Start Minutes
+    private $cronTasksMap = [
+        [HooksInterface::UPDATE_CURRENT_PLAYERS_GAMES, WordpressPeriodInterface::HOURLY, 12, 0],
+        [HooksInterface::UPDATE_YESTERDAY_PLAYERS_GAMES, WordpressPeriodInterface::DAILY, 12, 0],
+    ];
 
-    public function addTask()
+    /**
+     * @var CronManager
+     */
+    private $cronManager;
+
+    /**
+     * Cron constructor.
+     * @param CronManager $cronManager
+     */
+    public function __construct(CronManager $cronManager)
     {
-        if (!wp_next_scheduled(self::HOOK_NAME) ) {
-            wp_schedule_event(time(), 'hourly', self::HOOK_NAME);
+        $this->cronManager = $cronManager;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function addCronTasks()
+    {
+        foreach ($this->cronTasksMap as $cronTaskParams) {
+            list($hookName, $period, $hours, $minutes) = $cronTaskParams;
+            $this->addCronTask($hookName, $period, $hours, $minutes);
         }
     }
 
-    public function deleteTask()
+    /**
+     * @param string $hookName
+     * @param int $period
+     * @param int $hours
+     * @param int $minutes
+     * @throws Exception
+     */
+    private function addCronTask($hookName, $period, $hours, $minutes)
     {
-        if (wp_next_scheduled(self::HOOK_NAME) ) {
-            wp_clear_scheduled_hook(self::HOOK_NAME);
+        $this->cronManager->addTask($hookName, $period, $hours, $minutes);
+    }
+
+    public function deleteCronTasks()
+    {
+        foreach ($this->cronTasksMap as $cronTaskParams) {
+            list($hookName) = $cronTaskParams;
+            $this->cronManager->deleteTask($hookName);
         }
     }
 }

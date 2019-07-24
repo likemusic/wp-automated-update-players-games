@@ -17,7 +17,7 @@ class PlayerBaseInfoProvider
      * @return PlayerBaseInfo
      * @throws Exception
      */
-    public function getByLatinPlayerInfo(string $latinLastName, string $latinPlayerFirstNameFirstLetters, string $latinCountryCode): PlayerBaseInfo
+    public function getByLatinPlayerInfo(string $latinLastName, string $latinPlayerFirstNameFirstLetters, string $latinCountryCode = null): PlayerBaseInfo
     {
         $firstNameLettersPattern = $this->getFirstNameLettersPattern($latinPlayerFirstNameFirstLetters);
 
@@ -27,18 +27,19 @@ class PlayerBaseInfoProvider
             'post_parent' => PostIdInterface::PLAYERS,
             'meta_query' => [
                 [
-                    'key' => 'country',
-                    'value' => $latinCountryCode,
-                ],
-                [
                     'key' => 'name_lat',
-//                    'value' => "{$latinPlayerFirstNameFirstLetter}\w+ {$latinLastName}",
-//                    'value' => "{$latinLastName}",
                     'value' => "^{$firstNameLettersPattern} {$latinLastName}$",//todo: check for multiple firstLetters
                     'compare' => 'REGEXP'
                 ]
             ]
         ];
+
+        if ($latinCountryCode) {
+            $wpQueryArgs['meta_query'][] =  [
+                'key' => 'country',
+                'value' => $latinCountryCode,
+            ];
+        }
 
         $wpQuery = new WP_Query($wpQueryArgs);
 
@@ -60,6 +61,10 @@ class PlayerBaseInfoProvider
 
         $tableShortCode = get_post_meta($postId, MetaFieldKeyInterface::GAMES_TABLE_SHORT_CODE, true);
         $latinName = get_post_meta($postId, MetaFieldKeyInterface::LATIN_NAME, true);
+
+        if (!$latinCountryCode) {
+            $latinCountryCode = get_post_meta($postId, MetaFieldKeyInterface::COUNTRY, true);
+        }
 
         $playerBaseInfo = new PlayerBaseInfo();
         $playerBaseInfo
@@ -88,6 +93,9 @@ class PlayerBaseInfoProvider
             $patterns[] = "{$letter}[[:alpha:]]+";
         }
 
-        return implode(' ', $patterns);
+        $result = implode(' ', $patterns);
+        $result = str_replace('-', '[[:alpha:]]+-', $result);
+
+        return $result;
     }
 }

@@ -20,7 +20,8 @@ require __DIR__ . '/vendor/autoload.php';
 
 use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteCyrillic as DonorLatinToSiteCyrillicCountryCodeConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteLatin as DonorLatinToSiteLatinCountryCodeConverter;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\Cron as CronHelper;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\Cron as CronService;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\Cron\Manager as CronManager;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable\Creator as PlayerGameTableCreator;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable\Updater as PlayerTableGamesUpdater;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerBaseInfoProvider;
@@ -35,6 +36,8 @@ use TennisScoresGrabber\XScores\HtmlProvider;
 use TennisScoresGrabber\XScores\ScoresProvider;
 use TennisScoresGrabber\XScores\TableParser;
 use TennisScoresGrabber\XScores\UrlProvider;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\Hooks as HooksService;
+
 
 $simpleHttpClient = new SimpleHttpClient();
 $urlProvider = new UrlProvider();
@@ -46,7 +49,6 @@ $tableParser = new TableParser($gameRowToGameConverter);
 $scoresHtmlParser = new HtmlParser($tableParser);
 
 $scoresProvider = new ScoresProvider($htmlProvider, $scoresHtmlParser);
-$cronHelper = new CronHelper();
 
 $donorLatinToSiteCyrillicCountryCodeConverter = new DonorLatinToSiteCyrillicCountryCodeConverter();
 $XScoreGameToTableRowConverter = new XScoreGameToTableRowConverter($donorLatinToSiteCyrillicCountryCodeConverter);
@@ -69,5 +71,8 @@ $playersGamesUpdater = new PlayersGamesUpdater(
     $playerTableGamesCreator
 );
 
-$plugin = new Plugin($cronHelper, $playersGamesUpdater);
+$cronManager = new CronManager();
+$cronService = new CronService($cronManager);
+$hooksService = new HooksService($playersGamesUpdater);
+$plugin = new Plugin($cronService, $hooksService);
 $plugin->run(__FILE__);
