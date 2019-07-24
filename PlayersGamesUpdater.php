@@ -112,7 +112,9 @@ class PlayersGamesUpdater
 
                 $this->updatePlayersGamesByGame($game, $dateTime);
             } catch (Exception $exception) {
-                error_log($exception->getMessage());
+                $dayDateStr = $dateTime->format('Y-m-d');
+                $exceptionMessage = $exception->getMessage();
+                error_log( "{$dayDateStr} {$exceptionMessage}");
             }
         }
     }

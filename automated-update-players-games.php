@@ -18,12 +18,14 @@ namespace Likemusic\AutomatedUpdatePlayersGames;
 
 require __DIR__ . '/vendor/autoload.php';
 
+use Likemusic\AutomatedUpdatePlayersGames\Controller\AdminPage as AdminPageController;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteCyrillic as DonorLatinToSiteCyrillicCountryCodeConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\CountryCodeConverter\DonorLatinToSiteLatin as DonorLatinToSiteLatinCountryCodeConverter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\Cron as CronService;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\Cron\Manager as CronManager;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable\Creator as PlayerGameTableCreator;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable\Updater as PlayerTableGamesUpdater;
+use Likemusic\AutomatedUpdatePlayersGames\Helper\Hooks as HooksService;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\PlayerBaseInfoProvider;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\SourcePlayerSplitter;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\TablePress as TablePressHelper;
@@ -36,8 +38,6 @@ use TennisScoresGrabber\XScores\HtmlProvider;
 use TennisScoresGrabber\XScores\ScoresProvider;
 use TennisScoresGrabber\XScores\TableParser;
 use TennisScoresGrabber\XScores\UrlProvider;
-use Likemusic\AutomatedUpdatePlayersGames\Helper\Hooks as HooksService;
-
 
 $simpleHttpClient = new SimpleHttpClient();
 $urlProvider = new UrlProvider();
@@ -74,5 +74,6 @@ $playersGamesUpdater = new PlayersGamesUpdater(
 $cronManager = new CronManager();
 $cronService = new CronService($cronManager);
 $hooksService = new HooksService($playersGamesUpdater);
-$plugin = new Plugin($cronService, $hooksService);
+$adminPageController = new AdminPageController($playersGamesUpdater);
+$plugin = new Plugin($cronService, $hooksService, $adminPageController);
 $plugin->run(__FILE__);
