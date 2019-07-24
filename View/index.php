@@ -7,7 +7,6 @@ use Likemusic\AutomatedUpdatePlayersGames\Contracts\AdminPage\DateType;
 /** @var string $dateMin */
 /** @var string $dateMax */
 ?>
-<script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <script>
     jQuery(function ($) {
         $('input[name=type]').change(function () {
