@@ -2,7 +2,7 @@
 
 namespace Likemusic\AutomatedUpdatePlayersGames\Helper;
 
-use InvalidArgumentException;
+use Likemusic\AutomatedUpdatePlayersGames\InvalidPlayerNameException;
 
 class SourcePlayerSplitter
 {
@@ -12,7 +12,7 @@ class SourcePlayerSplitter
         $matches = [];
 
         if (!preg_match($pattern, $sourcePlayer, $matches)) {
-            throw new InvalidArgumentException('Invalid source player name: '. $sourcePlayer);
+            throw new InvalidPlayerNameException("", 0, null, $sourcePlayer);
         }
 
         $country = array_key_exists('country', $matches) ? $matches['country'] : null;
