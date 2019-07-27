@@ -110,6 +110,10 @@ class PlayersGamesUpdater
                     continue;
                 }
 
+                if ($this->isTransferToNextRound($game)) {
+                    continue;
+                }
+
                 $this->updatePlayersGamesByGame($game, $dateTime);
             } catch (Exception $exception) {
                 $dayDateStr = $dateTime->format('Y-m-d');
@@ -117,6 +121,19 @@ class PlayersGamesUpdater
                 error_log( "{$dayDateStr} {$exceptionMessage}");
             }
         }
+    }
+
+    private function isTransferToNextRound(GameInterface $game)
+    {
+        if ($game->getPlayerHome() == 'BYE') {
+            return true;
+        }
+
+        if ($game->getPlayerAway() == 'BYE') {
+            return true;
+        }
+
+        return false;
     }
 
     private function isDoubleGame(GameInterface $game)
