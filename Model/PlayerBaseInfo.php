@@ -32,48 +32,48 @@ class PlayerBaseInfo
         return $this;
     }
 
-    public function getPostName(): ?string
+    public function getPostName()
     {
         return $this->postName;
     }
 
-    public function setPostName(?string $postName)
+    public function setPostName($postName)
     {
         $this->postName = $postName;
 
         return $this;
     }
 
-    public function getPostTitle(): ?string
+    public function getPostTitle()
     {
         return $this->postTitle;
     }
 
-    public function setPostTitle(?string $postTitle): self
+    public function setPostTitle($postTitle): self
     {
         $this->postTitle = $postTitle;
 
         return $this;
     }
 
-    public function getTableShortCode(): ?string
+    public function getTableShortCode()
     {
         return $this->shortCode;
     }
 
-    public function setTableShortCode(?string $shortCode): self
+    public function setTableShortCode($shortCode): self
     {
         $this->shortCode = $shortCode;
 
         return $this;
     }
 
-    public function getLatinCountryCode(): ?string
+    public function getLatinCountryCode()
     {
         return $this->countryCode;
     }
 
-    public function setLatinCountryCode(?string $countryCode): self
+    public function setLatinCountryCode($countryCode): self
     {
         $this->countryCode = $countryCode;
 

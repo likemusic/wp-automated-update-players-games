@@ -28,7 +28,7 @@ class PlayerBaseInfoProvider
             'meta_query' => [
                 [
                     'key' => 'name_lat',
-                    'value' => "^{$firstNameLettersPattern} {$latinLastName}$",//todo: check for multiple firstLetters
+                    'value' => "^{$firstNameLettersPattern} {$latinLastName}",//todo: check for multiple firstLetters
                     'compare' => 'REGEXP'
                 ]
             ]
