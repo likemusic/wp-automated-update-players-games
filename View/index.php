@@ -28,13 +28,11 @@ use Likemusic\AutomatedUpdatePlayersGames\Contracts\AdminPage\DateType;
             }
 
             $dateStartLabel = $dateStart.find('label');
-            $dateEndLabel = $dateEnd.find('lable');
 
             if (value === 'day') {
                 $dateStartLabel.text('выбранный день');
             } else if(value === 'period') {
                 $dateStartLabel.text('начальная дата');
-                $dateEndLabel.text('конечная дата');
             }
         });
     });

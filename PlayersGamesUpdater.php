@@ -225,7 +225,7 @@ class PlayersGamesUpdater
      * @param $playerTableRowData
      * @throws Exception
      */
-    private function updateOrCreatePlayerGamesTable(PlayerBaseInfo $playerBaseInfo, array $playerTableRowData): void
+    private function updateOrCreatePlayerGamesTable(PlayerBaseInfo $playerBaseInfo, array $playerTableRowData)
     {
         if (!$homePlayerTableShortCode = $playerBaseInfo->getTableShortCode()) {
             $this->createAndLinkGamesTableWithDataRow($playerBaseInfo, $playerTableRowData);

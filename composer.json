@@ -14,13 +14,19 @@
   "type": "library",
 
   "require": {
-    "php": ">=7.1.0",
+    "php": ">=7.0.33",
     "likemusic/tennis-scores-grabber-xscores": "dev-master",
     "likemusic/simple-http-client-file-get-contents": "dev-master"
   },
 
+  "config": {
+    "platform": {
+      "php": "7.0.33"
+    }
+  },
+
   "require-dev": {
-    "phpunit/phpunit" : "^7"
+    "phpunit/phpunit" : "^6"
   },
 
   "autoload": {
