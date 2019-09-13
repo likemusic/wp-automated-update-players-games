@@ -4,6 +4,7 @@ namespace Likemusic\AutomatedUpdatePlayersGames\Helper\GamesTable;
 
 use Exception;
 use Likemusic\AutomatedUpdatePlayersGames\Contracts\GamesTableKeyInterface;
+use Likemusic\AutomatedUpdatePlayersGames\Contracts\GamesTableValueInterface;
 use Likemusic\AutomatedUpdatePlayersGames\Helper\TablePress as TablePressHelper;
 
 class Updater
@@ -55,7 +56,32 @@ class Updater
             $tableData = $this->updateTableRow($tableData, $existsRow, $playerTableRowData);
         }
 
+        $tableData = $this->getTableDataWithoutPreviousNotCompleted($tableData);
+
         return $this->setTableData($pressTable, $tableData);
+    }
+
+    private function getTableDataWithoutPreviousNotCompleted($tableData)
+    {
+        if (!$tableData) {
+            return $tableData;
+        }
+
+        $firstRow = array_shift($tableData);
+        // First line could be without results (from current day results);
+
+        if ($tableData) {
+            $tableData = array_filter($tableData, [$this, 'isRowContainsResult']);
+        }
+
+        array_unshift($tableData, $firstRow);
+
+        return $tableData;
+    }
+
+    private function isRowContainsResult($row)
+    {
+        return $row[GamesTableKeyInterface::RESULT] !== GamesTableValueInterface::NO_RESULT;
     }
 
     private function setTableData($pressTable, $tableData)
